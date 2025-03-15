@@ -1,0 +1,28 @@
+{
+  "name": "document-processor",
+  "version": "1.0.0",
+  "description": "Automated document processing with OCR (Scribe.js), AI tagging (DeepSeek via Ollama), and macOS file tagging.",
+  "main": "watcher.ts",
+  "scripts": {
+    "start": "esrun src/watcher.ts"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "dotenv": "^16.4.7",
+    "env-var": "^7.5.0",
+    "esrun": "^3.2.26",
+    "foreman": "^3.0.1",
+    "ollama": "^0.5.14",
+    "pdf-to-img": "^4.4.0",
+    "tesseract.js": "^6.0.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.6.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
