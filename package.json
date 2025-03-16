@@ -14,7 +14,6 @@
     "foreman": "^3.0.1",
     "ollama": "^0.5.14",
     "pdf-to-img": "^4.4.0",
-    "tesseract.js": "^6.0.0",
     "typescript": "^5.2.2"
   },
   "devDependencies": {
