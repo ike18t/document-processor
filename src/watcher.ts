@@ -9,15 +9,17 @@ import { pdf as pdfToImg } from "pdf-to-img";
 import ollama from "ollama";
 
 config();
-const execPromise = promisify(exec);
 
-const WATCH_DIR = env.get("WATCH_DIR").required().asString(); // Directory to watch for new files
-const PROCESSED_DIR = env.get("PROCESSED_DIR").required().asString(); // Directory to move processed files
-const MODEL = env.get("MODEL").required().asString(); // Directory to move processed files
+const WATCH_DIR = env.get("WATCH_DIR").required().asString();
+const PROCESSED_DIR = env.get("PROCESSED_DIR").required().asString();
+const MODEL = env.get("MODEL").required().asString();
 
 console.log("WATCH_DIR:", WATCH_DIR);
 watch(WATCH_DIR, { persistent: true }).on("add", async (filepath) => {
   if (!filepath.endsWith(".pdf")) return;
+  if (!filepath.endsWith("-ocr.pdf")) {
+    return await ocrPDF(filepath);
+  }
 
   console.log(`New file detected: ${filepath}`);
 
@@ -26,30 +28,30 @@ watch(WATCH_DIR, { persistent: true }).on("add", async (filepath) => {
     images.push(image);
   }
 
-  // Get AI-generated filename and tags from Llama-Vision
   const { filename, tags } = await generateFilenameAndTags(images);
 
   console.log(`Generated Filename: ${filename}`);
   console.log(`Generated Tags: ${tags.join(", ")}`);
 
-  // Apply macOS tags
   await applyTags(filepath, tags);
 
-  // Move the file to a structured directory
+  const destDir = generateDestinationDirectory(PROCESSED_DIR);
+  const newFilePath = path.join(destDir, filename);
+
+  await promisify(fs.rename)(filepath, newFilePath);
+});
+
+function generateDestinationDirectory(dir: string) {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
-  const destDir = path.join(PROCESSED_DIR, `${year}`, `${month}`);
+  const destDir = path.join(dir, `${year}`, `${month}`);
+
   fs.mkdirSync(destDir, { recursive: true });
 
-  const newFilePath = path.join(destDir, filename);
-  fs.rename(filepath, newFilePath, (err) => {
-    if (err) console.error("Error moving file:", err);
-    else console.log(`File moved to: ${newFilePath}`);
-  });
-});
+  return destDir;
+}
 
-// **Send Images to Llama-Vision to Get Filename & Tags**
 async function generateFilenameAndTags(
   images: Buffer[]
 ): Promise<{ filename: string; tags: string[] }> {
@@ -69,28 +71,46 @@ async function generateFilenameAndTags(
     images,
   });
 
-  // Extract JSON safely
   const match = response.match(/\{.*\}/s);
   if (!match) {
-    console.error("Invalid JSON response from Ollama:", response);
-    return { filename: "unknown_document.pdf", tags: [] };
+    throw new Error("Invalid JSON response from Ollama:" + response);
   }
 
   return JSON.parse(match[0]);
 }
 
-// **Apply macOS Tags**
+async function ocrPDF(pdfPath: string): Promise<void> {
+  const destPath = pdfPath.replace(".pdf", "-ocr.pdf");
+  const command = `ocrmypdf --rotate-pages --deskew --clean "${pdfPath}" "${destPath}"`;
+
+  try {
+    await promisify(exec)(command);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("PriorOcrFoundError")
+    ) {
+      console.log("Prior OCR found. Skipping OCR.");
+      await promisify(fs.rename)(pdfPath, destPath);
+      return;
+    }
+
+    throw error;
+  }
+  await promisify(fs.rm)(pdfPath);
+}
+
 async function applyTags(
   filePath: string,
   tags: ReadonlyArray<string>
 ): Promise<void> {
   if (tags.length === 0) return;
 
-  const tagString = tags.join(",");
+  const tagString = tags.map((t) => t.replaceAll(" ", "_")).join(",");
   const command = `tag --add ${tagString} "${filePath}"`;
 
-  await execPromise(command);
-  console.log(`Tags applied: ${tags.join(", ")}`);
+  await promisify(exec)(command);
+  console.log(`Tags applied: ${tagString}`);
 }
 
 console.log("Watching for new scanned documents...");
