@@ -1,20 +1,65 @@
-Intent:
-create an app that will manage my scanned mail by doing the following:
+# Document Processor
 
-- monitors a folder for new pdfs
-- runs OCR on new pdfs
-- generates a contextualized filename
-- adds contextual macOS tags on the file
-- moves the pdf to a new folder with the structure of year/month/filename.pdf.
+Document Processor is an application designed to streamline the management of scanned mail by automating tasks such as OCR processing, contextual renaming, tagging, and organized storage of PDF files. It leverages a visual Large Language Model (LLM) to enhance text extraction, recognition, and contextual understanding for more accurate file naming and tagging.
 
-to start:
-`npm start`
+## Features
 
-dependencies:
-`brew install tags ollama ocrmypdf`
+- **Folder Monitoring**: Continuously watches a specified folder for new PDF files.
+- **OCR Processing**: Applies Optical Character Recognition (OCR) to new PDFs to extract text content.
+- **Contextual Renaming**: Generates descriptive filenames based on the content of each PDF.
+- **macOS Tagging**: Assigns contextual macOS tags to files for enhanced organization and searchability.
+- **Structured Archiving**: Moves processed PDFs to a designated folder, organizing them by year and month.
 
-model can be installed via ollama and configured in .env but needs to be a visual model that accepts multple images. Developed with llava.
-`ollama pull llava:13b`
+## Prerequisites
 
-ollama http server needs to be running
-`ollama serve`
+Before setting up Document Processor, ensure that the following dependencies are installed:
+
+- **tags**: A command-line tool for manipulating macOS file tags.
+- **ollama**: A tool for managing and serving machine learning models.
+- **ocrmypdf**: A utility to add OCR text layers to PDFs.
+
+Install these dependencies using [Homebrew](https://brew.sh/):
+
+```bash
+brew install tags ollama ocrmypdf
+```
+
+## Model Setup
+
+Document Processor utilizes a visual model compatible with multiple images. The application has been developed and tested with the `llava` model. To set up the model:
+
+1. Pull the `llava:13b` model using `ollama`:
+
+   ```bash
+   ollama pull llava:13b
+   ```
+
+2. Configure the model in the `.env` file. Ensure that the model settings align with your requirements.
+
+## Starting the Application
+
+Before running Document Processor, ensure that the `ollama` HTTP server is active:
+
+```bash
+ollama serve
+```
+
+Once the server is running, start the application with:
+
+```bash
+npm start
+```
+
+The application will begin monitoring the specified folder for new PDFs and process them as configured.
+
+## Configuration
+
+Adjust application settings, such as the watch folder path and processing parameters, in the `.env` file. Ensure that all configurations are set according to your environment and preferences.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+Special thanks to the developers of `tags`, `ollama`, and `ocrmypdf` for their invaluable tools that make this application possible.
