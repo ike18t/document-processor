@@ -88,7 +88,9 @@ async function ocrPDF(pdfPath: string): Promise<void> {
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message.includes("PriorOcrFoundError")
+      ["PriorOcrFoundError", "TaggedPDFError"].some((errorType) =>
+        error.message.includes(errorType)
+      )
     ) {
       console.log("Prior OCR found. Skipping OCR.");
       await promisify(fs.rename)(pdfPath, destPath);
