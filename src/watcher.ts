@@ -23,12 +23,7 @@ watch(WATCH_DIR, { persistent: true }).on("add", async (filepath) => {
 
   console.log(`New file detected: ${filepath}`);
 
-  const images: Buffer[] = [];
-  for await (const image of await pdfToImg(filepath)) {
-    images.push(image);
-  }
-
-  const { filename, tags } = await generateFilenameAndTags(images);
+  const { filename, tags } = await generateFilenameAndTags(filepath);
 
   console.log(`Generated Filename: ${filename}`);
   console.log(`Generated Tags: ${tags.join(", ")}`);
@@ -53,8 +48,13 @@ function generateDestinationDirectory(dir: string) {
 }
 
 async function generateFilenameAndTags(
-  images: Buffer[]
+  filepath: string
 ): Promise<{ filename: string; tags: string[] }> {
+  const images: Buffer[] = [];
+  for await (const image of await pdfToImg(filepath)) {
+    images.push(image);
+  }
+
   const { response } = await ollama.generate({
     model: MODEL,
     prompt: `Analyze the provided document images and generate:
