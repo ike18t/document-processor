@@ -4,7 +4,7 @@
   "description": "Automated document processing with OCR (Scribe.js), AI tagging (DeepSeek via Ollama), and macOS file tagging.",
   "main": "watcher.ts",
   "scripts": {
-    "start": "esrun src/watcher.ts"
+    "start": "nf start"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
@@ -14,7 +14,8 @@
     "foreman": "^3.0.1",
     "ollama": "^0.5.14",
     "pdf-to-img": "^4.4.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "wait-port": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.6.0"

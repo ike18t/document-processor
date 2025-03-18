@@ -38,13 +38,9 @@ Document Processor utilizes a visual model compatible with multiple images. The 
 
 ## Starting the Application
 
-Before running Document Processor, ensure that the `ollama` HTTP server is active:
+The application uses foreman to start both the ollama HTTP server and the document processor simultaneously.
 
-```bash
-ollama serve
-```
-
-Once the server is running, start the application with:
+To start the application, simply run:
 
 ```bash
 npm start
