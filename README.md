@@ -21,7 +21,7 @@ Before setting up Document Processor, ensure that the following dependencies are
 Install these dependencies using [Homebrew](https://brew.sh/):
 
 ```bash
-brew install tags ollama ocrmypdf
+brew install tag ollama ocrmypdf
 ```
 
 ## Model Setup
@@ -58,4 +58,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-Special thanks to the developers of `tags`, `ollama`, and `ocrmypdf` for their invaluable tools that make this application possible.
+Special thanks to the developers of `tag`, `ollama`, and `ocrmypdf` for their invaluable tools that make this application possible.
