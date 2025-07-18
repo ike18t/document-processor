@@ -29,12 +29,14 @@ watch(WATCH_DIR, {
 
   console.log(`New file detected: ${filepath}`);
 
-  const { filename, tags } = await generateFilenameAndTags(filepath);
+  const { filename, tags, documentType } = await generateFilenameAndTags(filepath);
 
   console.log(`Generated Filename: ${filename}`);
   console.log(`Generated Tags: ${tags.join(", ")}`);
+  console.log(`Document Type: ${documentType}`);
 
-  await applyTags(filepath, tags);
+  const allTags = [...tags, documentType];
+  await applyTags(filepath, allTags);
 
   const destDir = generateDestinationDirectory(PROCESSED_DIR);
   const newFilePath = path.join(destDir, filename);
@@ -55,7 +57,7 @@ function generateDestinationDirectory(dir: string) {
 
 async function generateFilenameAndTags(
   filepath: string
-): Promise<{ filename: string; tags: string[] }> {
+): Promise<{ filename: string; tags: string[]; documentType: string }> {
   const images: Buffer[] = [];
   for await (const image of await pdfToImg(filepath)) {
     images.push(image);
@@ -67,21 +69,24 @@ async function generateFilenameAndTags(
     prompt: `Analyze these document images and provide:
 1. A descriptive filename (include .pdf extension)
 2. 3-5 relevant tags (no spaces, use underscores)
+3. Document type classification from these categories: tax, financial, medical, legal, utility, insurance, personal, business, government, education, other
 
 Guidelines:
 - For tax documents, include form type (W2, 1040, etc.) and year
 - For bills/invoices, include vendor name and type
 - For personal documents, use descriptive categories
 - Use lowercase with underscores for consistency
+- Choose the most specific documentType that applies
 
 Examples:
-- Tax form → "2024_w2_acme_corp.pdf", tags: ["tax", "w2", "income", "2024"]
-- Electric bill → "pg_e_electric_bill_march_2024.pdf", tags: ["utility", "electric", "bill", "pge"]
-- Bank statement → "chase_bank_statement_january_2024.pdf", tags: ["bank", "statement", "finance", "chase"]
-- Medical record → "dr_smith_visit_summary_feb_2024.pdf", tags: ["medical", "doctor", "health", "visit"]
+- Tax form → "2024_w2_acme_corp.pdf", tags: ["tax", "w2", "income", "2024"], documentType: "tax"
+- Electric bill → "pg_e_electric_bill_march_2024.pdf", tags: ["utility", "electric", "bill", "pge"], documentType: "utility"
+- Bank statement → "chase_bank_statement_january_2024.pdf", tags: ["bank", "statement", "finance", "chase"], documentType: "financial"
+- Medical record → "dr_smith_visit_summary_feb_2024.pdf", tags: ["medical", "doctor", "health", "visit"], documentType: "medical"
+- Insurance policy → "auto_insurance_policy_2024.pdf", tags: ["insurance", "auto", "policy", "2024"], documentType: "insurance"
 
 Response format (JSON only):
-{"filename": "descriptive_name.pdf", "tags": ["tag1", "tag2", "tag3"]}`,
+{"filename": "descriptive_name.pdf", "tags": ["tag1", "tag2", "tag3"], "documentType": "category"}`,
     images,
   });
 
