@@ -15,7 +15,13 @@ const PROCESSED_DIR = env.get("PROCESSED_DIR").required().asString();
 const MODEL = env.get("MODEL").required().asString();
 
 console.log("WATCH_DIR:", WATCH_DIR);
-watch(WATCH_DIR, { persistent: true }).on("add", async (filepath) => {
+watch(WATCH_DIR, { 
+  usePolling: true,
+  interval: 1000,
+  stabilityThreshold: 2000,
+  ignoreInitial: true,
+  persistent: true 
+}).on("add", async (filepath) => {
   if (!filepath.endsWith(".pdf")) return;
   if (!filepath.endsWith("-ocr.pdf")) {
     return await ocrPDF(filepath);
