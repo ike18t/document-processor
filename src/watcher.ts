@@ -57,26 +57,42 @@ async function generateFilenameAndTags(
 
   const { response } = await ollama.generate({
     model: MODEL,
-    prompt: `Analyze the provided document images and generate:
-      - A meaningful filename relevant to the document's content. Include the pdf file extension. If it is a tax document please include the type of tax form (e.g. 1040, W-2, etc).
-      - Exactly 3-5 relevant tags that best describe the document. These tags must contain no spaces.
+    system: `You are a document analysis assistant. Your job is to analyze document images and provide structured metadata for file organization. Always respond in valid JSON format with no additional text, explanations, or formatting.`,
+    prompt: `Analyze these document images and provide:
+1. A descriptive filename (include .pdf extension)
+2. 3-5 relevant tags (no spaces, use underscores)
 
-      Respond in **strict JSON format**:
-      {
-        "filename": "suggested_filename.pdf",
-        "tags": ["tag1", "tag2", "tag3"]
-      }
+Guidelines:
+- For tax documents, include form type (W2, 1040, etc.) and year
+- For bills/invoices, include vendor name and type
+- For personal documents, use descriptive categories
+- Use lowercase with underscores for consistency
 
-      No explanations or pleasantries, just JSON output.`,
+Examples:
+- Tax form → "2024_w2_acme_corp.pdf", tags: ["tax", "w2", "income", "2024"]
+- Electric bill → "pg_e_electric_bill_march_2024.pdf", tags: ["utility", "electric", "bill", "pge"]
+- Bank statement → "chase_bank_statement_january_2024.pdf", tags: ["bank", "statement", "finance", "chase"]
+- Medical record → "dr_smith_visit_summary_feb_2024.pdf", tags: ["medical", "doctor", "health", "visit"]
+
+Response format (JSON only):
+{"filename": "descriptive_name.pdf", "tags": ["tag1", "tag2", "tag3"]}`,
     images,
   });
 
-  const match = response.match(/\{.*\}/s);
-  if (!match) {
-    throw new Error("Invalid JSON response from Ollama:" + response);
+  try {
+    return JSON.parse(response);
+  } catch (e) {
+    const match = response.match(/\{.*\}/s);
+    if (!match) {
+      throw new Error(`Invalid JSON response from Ollama: ${response}`);
+    }
+    
+    try {
+      return JSON.parse(match[0]);
+    } catch (parseError) {
+      throw new Error(`Failed to parse JSON from response: ${response}`);
+    }
   }
-
-  return JSON.parse(match[0]);
 }
 
 async function ocrPDF(pdfPath: string): Promise<void> {
